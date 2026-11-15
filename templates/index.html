@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>FF GLORY | Glory Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<style>
+/* ═════════════ BASE ═════════════ */
+:root{
+  --bg:#050a16; --panel:#0b1324; --panel2:#101a2e; --stroke:rgba(255,255,255,.08);
+  --stroke2:rgba(96,165,250,.25); --text:#e8eefc; --muted:#8fa0bd; --faint:#4d5f7e;
+  --blue:#3b82f6; --blue2:#60a5fa; --cyan:#22d3ee; --green:#10b981; --gold:#fbbf24;
+  --red:#f87171; --purple:#a78bfa;
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-xl:24px;
+  --font-main:'Outfit',sans-serif; --font-mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  background:radial-gradient(ellipse 80% 50% at 50% -20%,rgba(59,130,246,.18),transparent 60%),
+             radial-gradient(ellipse 40% 30% at 100% 100%,rgba(34,211,238,.08),transparent 60%),
+             var(--bg);
+  color:var(--text); font-family:var(--font-main); line-height:1.5;
+  min-height:100dvh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px}
+h1,h2,h3,h4{font-weight:700;letter-spacing:-.02em}
+.mono{font-family:var(--font-mono)}
+.w-full{width:100%}
+
+/* ═════════════ MAINTENANCE BANNER (Top) ═════════════ */
+#maintenanceBanner {
+  display: none; 
+  background: rgba(248, 113, 113, 0.15);
+  border-bottom: 2px solid var(--red);
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  z-index: 2000;
+}
+#maintenanceBanner.show { display: block; }
+.mt-content { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #fca5a5; }
+.mt-icon { font-size: 28px; animation: pulse 2s infinite; }
+.mt-title { font-size: 18px; font-weight: 900; color: #fff; }
+.mt-desc { font-size: 14px; font-weight: 500; }
+
+/* ═════════════ LAYOUT ═════════════ */
+.app{display:flex;min-height:100dvh}
+.sidebar{
+  width:250px; background:linear-gradient(180deg,#080e1c,#060a14);
+  border-right:1px solid var(--stroke); padding:22px 16px;
+  display:flex; flex-direction:column; position:fixed; height:100dvh; z-index:100;
+  transition:transform .3s;
+}
+.main{margin-left:250px; flex:1; padding:26px 30px 90px; min-width:0}
+@media(max-width:1024px){
+  .sidebar{transform:translateX(-105%);box-shadow:20px 0 60px rgba(0,0,0,.6);width:280px}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:18px 14px 100px}
+}
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:90;border:0}
+body.sb-open .backdrop{display:block}
+body.sb-open{overflow:hidden}
+
+/* ═════════════ SIDEBAR ═════════════ */
+.brand{display:flex;align-items:center;gap:12px;padding:6px 4px 22px;border-bottom:1px solid var(--stroke);margin-bottom:22px}
+.brand-logo{
+  width:44px;height:44px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg,#1e3a8a,#60a5fa); color:#fff;
+  display:grid;place-items:center;font-size:20px;
+  box-shadow:0 0 24px rgba(96,165,250,.4);
+}
+.brand-text h1{font-size:17px;font-weight:900;letter-spacing:-.3px;line-height:1}
+.brand-text span{font-size:9px;color:var(--blue2);font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:6px;flex:1}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+  color:var(--muted);font-weight:600;font-size:14px;cursor:pointer;
+  transition:.2s;border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-item.active{background:linear-gradient(100deg,rgba(59,130,246,.2),rgba(59,130,246,.05));color:var(--blue2);border-color:rgba(96,165,250,.3)}
+.nav-item i{width:18px;text-align:center;font-size:15px}
+.sys-status{margin-top:auto;padding:14px;background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:14px}
+.sys-status-head{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:800;text-transform:uppercase;color:var(--muted);letter-spacing:.5px;margin-bottom:8px}
+.dot-live{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+.sys-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.sys-bar>div{height:100%;background:linear-gradient(90deg,var(--green),#34d399);border-radius:2px;width:65%}
+.sys-desc{font-size:10px;color:var(--faint);font-family:var(--font-mono)}
+
+/* ═════════════ TOPBAR ═════════════ */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+.topbar-left{display:flex;align-items:center;gap:12px;min-width:0}
+.menu-btn{
+  display:none;width:42px;height:42px;flex-shrink:0;border-radius:12px;
+  border:1px solid var(--stroke);background:var(--panel);color:var(--text);
+  font-size:17px;cursor:pointer;transition:.2s;
+}
+.menu-btn:hover{border-color:var(--blue2)}
+@media(max-width:1024px){.menu-btn{display:flex;align-items:center;justify-content:center}}
+.title-block h1{font-size:22px;font-weight:800;line-height:1.1}
+.title-block .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.live-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;
+  background:rgba(16,185,129,.14);color:#34d399;border:1px solid rgba(16,185,129,.35);
+  font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+}
+.live-pill .dot-live{width:6px;height:6px}
+.session-chip{
+  padding:7px 12px;border-radius:10px;background:rgba(255,255,255,.04);
+  border:1px solid var(--stroke);font-size:11px;color:var(--muted);font-family:var(--font-mono);
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 16px;border-radius:11px;border:1px solid var(--stroke);
+  background:rgba(255,255,255,.03);color:var(--text);
+  font-family:var(--font-main);font-size:13px;font-weight:600;cursor:pointer;
+  transition:.2s;white-space:nowrap;
+}
+.btn:hover:not(:disabled){background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);transform:translateY(-1px)}
+.btn:active:not(:disabled){transform:translateY(0)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:linear-gradient(100deg,#2563eb,#3b82f6);border:0;color:#fff;box-shadow:0 6px 20px rgba(59,130,246,.3)}
+.btn-primary:hover:not(:disabled){background:linear-gradient(100deg,#1d4ed8,#2563eb);box-shadow:0 8px 26px rgba(59,130,246,.45)}
+.btn-danger{background:rgba(248,113,113,.14);color:#fca5a5;border-color:rgba(248,113,113,.3)}
+.btn-danger:hover:not(:disabled){background:rgba(248,113,113,.24)}
+.btn-gold{background:linear-gradient(100deg,#f59e0b,#fbbf24);border:0;color:#1c1408;box-shadow:0 6px 20px rgba(251,191,36,.3)}
+.btn-gold:hover:not(:disabled){background:linear-gradient(100deg,#d97706,#f59e0b)}
+.btn-sm{padding:7px 12px;font-size:11px;border-radius:9px}
+
+/* ═════════════ TABS (TOP) ═════════════ */
+.tabbar{
+  display:flex;gap:7px;overflow-x:auto;padding:0 0 16px;margin-bottom:18px;
+  scrollbar-width:none;border-bottom:1px solid var(--stroke);
+}
+.tabbar::-webkit-scrollbar{display:none}
+.tab{
+  display:inline-flex;align-items:center;gap:7px;padding:9px 15px;
+  border:1px solid var(--stroke);border-radius:12px;
+  background:transparent;color:var(--muted);
+  font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.2s;
+}
+.tab:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.tab.active{background:linear-gradient(100deg,rgba(59,130,246,.18),rgba(59,130,246,.04));color:var(--blue2);border-color:rgba(96,165,250,.35)}
+.tab.hidden{display:none}
+
+/* ═════════════ VIEWS ═════════════ */
+.view{display:none;animation:fadeUp .3s ease-out}
+.view.active{display:block}
+
+/* ═════════════ CARDS ═════════════ */
+.card{
+  background:linear-gradient(145deg,#0c1526,#080e1c);
+  border:1px solid var(--stroke);border-radius:var(--r-xl);
+  padding:20px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+.card.tinted-blue{border-color:rgba(96,165,250,.3);background:linear-gradient(135deg,rgba(59,130,246,.12),#0a1024 60%)}
+.card.tinted-gold{border-color:rgba(251,191,36,.28);background:linear-gradient(135deg,rgba(251,191,36,.08),#0a1024 60%)}
+.card-heading{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;margin-bottom:14px}
+.card-heading i{color:var(--blue2)}
+.muted{color:var(--muted);font-size:13px}
+
+/* ═════════════ STATS GRID ═════════════ */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.stat{
+  background:linear-gradient(145deg,#0c1526,#080e1c);
+  border:1px solid var(--stroke);border-radius:16px;padding:16px;
+  position:relative;overflow:hidden;transition:.2s;
+}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),transparent)}
+.stat:hover{transform:translateY(-2px);border-color:var(--stroke2)}
+.stat-label{font-size:10px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.stat-label i{color:var(--blue2)}
+.stat-val{font-size:26px;font-weight:900;font-family:var(--font-mono);letter-spacing:-.5px;line-height:1}
+.stat-val.green{color:var(--green)}
+.stat-val.gold{color:var(--gold)}
+
+/* ═════════════ FORMS ═════════════ */
+.field{margin-bottom:14px}
+.label{display:block;margin-bottom:7px;font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.input-wrap{position:relative}
+.input-wrap i.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:13px;z-index:2;pointer-events:none}
+.input,.select,textarea.input{
+  width:100%;padding:14px 14px 14px 42px;
+  background:#050a14;border:1px solid var(--stroke);border-radius:12px;
+  color:var(--text);font-family:var(--font-mono);font-size:13px;
+  outline:none;transition:.2s;
+}
+.input:focus,.select:focus,textarea.input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(96,165,250,.15)}
+.select{appearance:none;cursor:pointer;font-family:var(--font-main)}
+textarea.input{padding-left:14px;min-height:90px;resize:vertical;font-family:var(--font-main)}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:520px){.input-row{grid-template-columns:1fr}}
+
+/* ═════════════ LOCK BANNER ═════════════ */
+.lock-banner{
+  display:flex;align-items:flex-start;gap:11px;padding:14px;
+  border-radius:13px;margin-bottom:16px;
+  background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.28);
+  color:#fca5a5;font-size:12px;line-height:1.5;font-weight:600;
+}
+.lock-banner i{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* ═════════════ BADGES ═════════════ */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:20px;font-size:10px;font-weight:800;
+  letter-spacing:.4px;text-transform:uppercase;
+}
+.badge.green{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.badge.gold{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+.badge.red{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3)}
+.badge.blue{background:rgba(59,130,246,.15);color:#60a5fa;border:1px solid rgba(59,130,246,.3)}
+.badge.gray{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--stroke)}
+
+/* ═════════════ PACKAGES ═════════════ */
+.pkg{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:14px 16px;border:1px solid var(--stroke);border-radius:13px;
+  margin-bottom:10px;cursor:pointer;transition:.2s;background:rgba(255,255,255,.015);
+}
+.pkg:hover{border-color:var(--stroke2);background:rgba(59,130,246,.05)}
+.pkg.selected{border-color:var(--gold);background:rgba(251,191,36,.08);box-shadow:0 0 0 2px rgba(251,191,36,.15) inset}
+.pkg-title{font-weight:800;font-size:14px;margin-bottom:2px}
+.pkg-sub{font-size:11px;color:var(--muted)}
+.pkg-price{font-size:18px;font-weight:900;color:var(--gold);font-family:var(--font-mono)}
+
+/* ═════════════ LIST ITEMS ═════════════ */
+.list{display:grid;gap:9px}
+.item{
+  padding:13px 15px;border:1px solid var(--stroke);border-radius:12px;
+  background:rgba(255,255,255,.015);font-size:13px;
+}
+.item-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.item-title{font-weight:700}
+.item-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.item-amount{font-size:15px;font-weight:800;color:var(--gold);font-family:var(--font-mono)}
+.empty{padding:36px 16px;text-align:center;color:var(--faint);font-size:13px}
+.empty i{display:block;font-size:32px;margin-bottom:10px;color:var(--faint)}
+
+/* ═════════════ GROUP / BOT ROWS ═════════════ */
+.group-card{
+  background:linear-gradient(145deg,#0c1526,#080e1c);
+  border:1px solid var(--stroke);border-radius:18px;
+  padding:18px;margin-bottom:14px;transition:.2s;
+}
+.group-card.running{border-color:rgba(16,185,129,.35);box-shadow:0 0 0 1px rgba(16,185,129,.2),0 10px 30px rgba(0,0,0,.3)}
+.group-card.generating{border-color:rgba(251,191,36,.3)}
+.group-card.failed{border-color:rgba(248,113,113,.3)}
+.gc-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.gc-avatar{
+  width:48px;height:48px;flex-shrink:0;border-radius:12px;
+  background:linear-gradient(145deg,#1e3a8a,#0c1526);
+  border:1px solid rgba(96,165,250,.3);
+  display:grid;place-items:center;font-size:20px;color:var(--blue2);
+}
+.gc-info{flex:1;min-width:0}
+.gc-name{font-size:16px;font-weight:800;line-height:1.2;word-break:break-word}
+.gc-tags{font-size:11px;color:var(--muted);font-family:var(--font-mono);margin-top:3px;display:flex;flex-wrap:wrap;gap:5px}
+.gc-glory-label{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-top:10px;margin-bottom:2px}
+.gc-glory{font-size:28px;font-weight:900;font-family:var(--font-mono);color:var(--text);line-height:1}
+.gc-glory.gold{color:var(--gold)}
+.gc-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--stroke);border-bottom:1px solid var(--stroke);margin-bottom:10px}
+.gc-cell-label{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;display:flex;align-items:center;gap:5px}
+.gc-cell-val{font-size:13px;font-weight:700;font-family:var(--font-mono);word-break:break-all}
+.gc-cell-val.green{color:var(--green)}
+.gc-cell-val.gold{color:var(--gold)}
+.gc-actions{display:flex;gap:8px;margin-top:10px}
+.gc-actions .btn{flex:1}
+
+/* ═════════════ BOT ROWS (MODAL) ═════════════ */
+.bot-row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 14px;background:rgba(255,255,255,.02);
+  border:1px solid var(--stroke);border-radius:11px;margin-bottom:8px;
+}
+.bot-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.bot-icon{width:34px;height:34px;flex-shrink:0;border-radius:9px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);display:grid;place-items:center;font-size:13px;color:var(--blue2)}
+.bot-name{font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.bot-uid{font-size:10px;color:var(--muted);font-family:var(--font-mono);word-break:break-all;margin-top:1px}
+.bot-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* ═════════════ ADMIN PANEL ═════════════ */
+.admin-shell{
+  background:#070b14;border:1px solid #1a2438;border-radius:20px;
+  padding:16px;color:var(--text);min-height:65vh;
+}
+.admin-head{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:13px 15px;background:#0a1220;border:1px solid #1a2438;
+  border-radius:14px;margin-bottom:12px;
+}
+.admin-brand{font-size:16px;font-weight:900;letter-spacing:.3px}
+.admin-brand small{display:block;font-size:9px;color:var(--faint);font-weight:500;margin-top:2px;letter-spacing:1px}
+.admin-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 16px}
+.admin-tab{
+  padding:8px 12px;border-radius:9px;border:1px solid #1a2438;
+  background:#0a1220;color:var(--muted);font-size:11px;font-weight:800;
+  cursor:pointer;transition:.2s;letter-spacing:.3px;
+}
+.admin-tab:hover{color:var(--text)}
+.admin-tab.active{background:#e8eefc;color:#08101e;border-color:#e8eefc}
+.admin-page{display:none}
+.admin-page.active{display:block}
+.admin-kicker{font-size:10px;font-weight:900;letter-spacing:1.5px;color:var(--faint);margin-bottom:10px;text-transform:uppercase}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.admin-stat{background:#0a1220;border:1px solid #1a2438;border-radius:13px;padding:14px}
+.admin-stat span{display:block;font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.admin-stat b{display:block;font-size:22px;font-weight:900;font-family:var(--font-mono);line-height:1}
+.admin-stat small{display:block;font-size:10px;color:var(--faint);margin-top:4px}
+.admin-stat.revenue b{color:#10b981}
+.admin-block{background:#0a1220;border:1px solid #1a2438;border-radius:14px;padding:15px;margin-bottom:12px}
+.admin-block h3{font-size:14px;margin-bottom:12px;font-weight:800}
+.admin-userrow{
+  display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;
+  padding:11px 0;border-bottom:1px solid #1a2438;
+}
+.admin-userrow:last-child{border:0}
+.admin-pill{
+  font-size:10px;font-weight:800;color:#34d399;
+  background:rgba(16,185,129,.12);padding:3px 8px;border-radius:20px;border:1px solid rgba(16,185,129,.25);
+}
+.online-chips{display:flex;gap:7px;flex-wrap:wrap}
+.online-chip{
+  font-size:10px;font-weight:800;color:#34d399;
+  background:rgba(16,185,129,.1);padding:4px 9px;border-radius:20px;
+  border:1px solid rgba(16,185,129,.25);
+}
+
+/* Toggle Switch */
+.switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; -webkit-transition: .4s; transition: .4s; border-radius: 26px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; -webkit-transition: .4s; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--red); }
+input:focus + .slider { box-shadow: 0 0 1px var(--red); }
+input:checked + .slider:before { -webkit-transform: translateX(20px); -ms-transform: translateX(20px); transform: translateX(20px); }
+
+/* Terminal Logs Box */
+.terminal{
+  background:#000;border:1px solid #222;border-radius:10px;
+  padding:12px;height:300px;overflow-y:auto;font-family:var(--font-mono);font-size:11px;
+  line-height:1.6;color:#a6e3a1;
+}
+.terminal .log-line{margin-bottom:2px;word-break:break-all}
+.terminal .log-line.err{color:#f38ba8}
+.terminal .log-line.warn{color:#f9e2af}
+.terminal .log-line.info{color:#89b4fa}
+.terminal .log-line.suc{color:#a6e3a1}
+
+/* ═════════════ AUTH GATE ═════════════ */
+#authGate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  background:
+    radial-gradient(circle at 20% 10%,#0b2b47 0,transparent 50%),
+    radial-gradient(circle at 80% 90%,rgba(59,130,246,.15) 0,transparent 50%),
+    #030813;
+  backdrop-filter:blur(8px);
+}
+#authGate[hidden]{display:none!important}
+.auth-card{
+  width:min(100%,420px);padding:26px;border-radius:22px;
+  background:linear-gradient(145deg,#0b1324,#050a14);
+  border:1px solid rgba(96,165,250,.2);
+  box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 40px rgba(59,130,246,.1);
+}
+.auth-logo{
+  width:56px;height:56px;margin:0 auto 14px;border-radius:16px;
+  background:linear-gradient(135deg,#1e3a8a,#60a5fa);
+  display:grid;place-items:center;font-size:24px;color:#fff;
+  box-shadow:0 0 30px rgba(96,165,250,.4);
+}
+.auth-brand{text-align:center;margin-bottom:22px}
+.auth-brand h1{font-size:24px;font-weight:900;letter-spacing:-.5px}
+.auth-brand p{color:var(--muted);font-size:12px;margin-top:5px}
+.auth-tabs{display:flex;gap:6px;margin-bottom:16px;background:rgba(255,255,255,.03);padding:5px;border-radius:12px;border:1px solid var(--stroke)}
+.auth-tab{flex:1;padding:9px;border:0;background:transparent;color:var(--muted);font-weight:800;font-size:12px;cursor:pointer;border-radius:9px;transition:.2s;font-family:var(--font-main)}
+.auth-tab.active{background:rgba(59,130,246,.2);color:var(--blue2)}
+.auth-field{margin-bottom:12px}
+.auth-field label{display:block;font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.auth-field input{
+  width:100%;padding:12px 14px;background:#030813;border:1px solid var(--stroke);
+  border-radius:10px;color:var(--text);font-size:14px;font-family:var(--font-main);outline:none;transition:.2s;
+}
+.auth-field input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(96,165,250,.15)}
+.auth-submit{
+  width:100%;padding:13px;border:0;border-radius:11px;
+  background:linear-gradient(100deg,#2563eb,#3b82f6);color:#fff;
+  font-weight:900;font-size:14px;letter-spacing:.3px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(59,130,246,.3);margin-top:4px;font-family:var(--font-main);
+}
+.auth-submit:hover{background:linear-gradient(100deg,#1d4ed8,#2563eb)}
+.auth-error{color:#f87171;font-size:12px;min-height:16px;margin-top:8px;text-align:center;font-weight:600}
+.auth-note{font-size:10px;color:var(--faint);line-height:1.6;margin-top:14px;text-align:center}
+
+/* ═════════════ MODAL ═════════════ */
+.modal{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:.3s}
+.modal.open{opacity:1;visibility:visible}
+.modal-box{
+  width:100%;max-width:520px;max-height:88dvh;overflow:hidden;
+  background:linear-gradient(145deg,#0b1324,#050a14);
+  border:1px solid rgba(96,165,250,.2);border-radius:20px;
+  display:flex;flex-direction:column;
+  transform:scale(.95) translateY(15px);transition:.3s;
+  box-shadow:0 30px 80px rgba(0,0,0,.8);
+}
+.modal.open .modal-box{transform:scale(1) translateY(0)}
+.modal-head{padding:16px 18px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-size:16px;font-weight:800;display:flex;align-items:center;gap:9px}
+.modal-head h2 i{color:var(--blue2)}
+.modal-close{background:transparent;border:0;color:var(--muted);font-size:16px;cursor:pointer;padding:5px 8px;border-radius:7px;transition:.2s}
+.modal-close:hover{background:rgba(255,255,255,.07);color:var(--text)}
+.modal-body{padding:16px 18px;overflow-y:auto}
+
+/* ═════════════ TOAST ═════════════ */
+#toast{position:fixed;bottom:20px;right:20px;z-index:3000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  padding:12px 16px;border-radius:11px;background:#0c1526;
+  border:1px solid var(--stroke);color:var(--text);font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:9px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+  pointer-events:auto;min-width:220px;max-width:340px;
+  animation:fadeUp .3s ease-out;
+}
+.toast.success{border-color:rgba(16,185,129,.4);color:#34d399}
+.toast.error{border-color:rgba(248,113,113,.4);color:#f87171}
+.toast.info{border-color:rgba(96,165,250,.4);color:#60a5fa}
+
+/* ═════════════ FLOATING CONTACT ═════════════ */
+.floaters{position:fixed;right:16px;bottom:20px;z-index:200;display:flex;flex-direction:column;gap:10px}
+.floater{
+  width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;font-size:20px;
+  cursor:pointer;text-decoration:none;border:0;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  transition:.2s;
+}
+.floater:hover{transform:scale(1.08)}
+.floater.wa{background:#25d366}
+.floater.tg{background:#229ed9}
+
+/* ═════════════ ANIMATIONS ═════════════ */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.9)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.spin{animation:spin 1s linear infinite}
+
+@media (max-width:640px){
+  .title-block h1{font-size:18px}
+  .title-block .sub{font-size:11px}
+  .card{padding:16px;border-radius:18px}
+  .statgrid{grid-template-columns:repeat(2,1fr);gap:9px}
+  .stat{padding:13px}
+  .stat-val{font-size:22px}
+  .gc-glory{font-size:24px}
+  .btn{padding:9px 13px;font-size:12px}
+  .floaters{right:12px;bottom:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- MAINTENANCE BANNER -->
+<div id="maintenanceBanner">
+  <div class="mt-content">
+    <i class="fa-solid fa-screwdriver-wrench mt-icon"></i>
+    <div class="mt-title">System Under Maintenance</div>
+    <div class="mt-desc">Bot engine is currently being upgraded. Please check back later.</div>
+  </div>
+</div>
+
+<!-- AUTH GATE -->
+<div id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo"><i class="fa-solid fa-bolt"></i></div>
+    <div class="auth-brand">
+      <h1>FF <span style="color:#fbbf24">GLORY</span></h1>
+      <p>Glory Engine · User & Admin Access</p>
+    </div>
+    <div class="auth-tabs">
+      <button id="tabLogin" class="auth-tab active" onclick="switchAuthMode('login')">Login</button>
+      <button id="tabRegister" class="auth-tab" onclick="switchAuthMode('register')">Create</button>
+    </div>
+    <form id="authForm" onsubmit="handleAuth(event)">
+      <div class="auth-field" id="fieldName" hidden><label>Full Name</label><input id="authName" placeholder="Your name"></div>
+      <div class="auth-field" id="fieldEmail"><label>Email</label><input id="authEmail" type="email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label>Username</label><input id="authUsername" required placeholder="Enter username"></div>
+      <div class="auth-field"><label>Password</label><input id="authPassword" type="password" required minlength="6" placeholder="Enter password"></div>
+      <button id="authBtn" type="submit" class="auth-submit">Login to Dashboard</button>
+      <div class="auth-error" id="authError"></div>
+    </form>
+    <div class="auth-note">Admin: username <b>papa</b> / password <b>nahi</b><br>User data stays in this browser only.</div>
+  </div>
+</div>
+
+<!-- ═════════════════════ APP ═════════════════════ -->
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-bolt"></i></div>
+      <div class="brand-text"><h1>FF GLORY</h1><span>Glory Engine</span></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="go('home',this)"><i class="fa-solid fa-house"></i><span>Dashboard</span></div>
+      <div class="nav-item" onclick="go('credits',this)"><i class="fa-solid fa-wallet"></i><span>Buy Credits</span></div>
+      <div class="nav-item" onclick="go('history',this)"><i class="fa-solid fa-receipt"></i><span>History</span></div>
+      <div class="nav-item" onclick="go('coupons',this)"><i class="fa-solid fa-gift"></i><span>Coupons</span></div>
+      <div class="nav-item" onclick="go('contact',this)"><i class="fa-solid fa-message"></i><span>Contact</span></div>
+    </nav>
+    <div class="sys-status">
+      <div class="sys-status-head"><span>Engine</span><div class="dot-live"></div></div>
+      <div class="sys-bar"><div></div></div>
+      <div class="sys-desc">Uptime tracking…</div>
+    </div>
+  </aside>
+  <button class="backdrop" onclick="closeSidebar()"></button>
+
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div class="title-block">
+          <h1>FF GLORY Dashboard <span class="live-pill" style="vertical-align:middle"><span class="dot-live"></span>LIVE</span></h1>
+          <div class="sub">Bot launch · Guild info · Account activity</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="session-chip" id="sessionChip">Signed out</span>
+        <button class="btn" onclick="fetchAll(true)"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        <button class="btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tabbar" id="tabbar">
+      <button class="tab active" data-view="home" onclick="go('home',this)"><i class="fa-solid fa-house"></i>Home</button>
+      <button class="tab" data-view="credits" onclick="go('credits',this)"><i class="fa-solid fa-wallet"></i>Buy Credits</button>
+      <button class="tab" data-view="history" onclick="go('history',this)"><i class="fa-solid fa-receipt"></i>History</button>
+      <button class="tab" data-view="coupons" onclick="go('coupons',this)"><i class="fa-solid fa-gift"></i>Coupons</button>
+      <button class="tab" data-view="contact" onclick="go('contact',this)"><i class="fa-solid fa-message"></i>Contact</button>
+      <button class="tab hidden" data-view="admin" id="adminTab" onclick="openAdmin()"><i class="fa-solid fa-shield-halved"></i>Admin</button>
+    </div>
+
+    <!-- ═══════════ HOME ═══════════ -->
+    <section id="view-home" class="view active">
+      <div class="card tinted-blue">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+          <div>
+            <div class="stat-label">Your Credits</div>
+            <div style="font-size:32px;font-weight:900;color:var(--blue2);font-family:var(--font-mono);line-height:1;margin-top:2px" id="userCredits">0</div>
+          </div>
+          <div style="text-align:right">
+            <span class="badge blue"><i class="fa-solid fa-signal"></i> Engine Live</span>
+            <div class="muted" style="margin-top:6px">Real FF bot automation</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="statgrid">
+        <div class="stat"><div class="stat-label"><i class="fa-solid fa-robot"></i>Total Bots</div><div class="stat-val" id="statBots">0</div></div>
+        <div class="stat"><div class="stat-label"><i class="fa-solid fa-gamepad"></i>Active Matches</div><div class="stat-val green" id="statMatches">0</div></div>
+        <div class="stat"><div class="stat-label"><i class="fa-solid fa-arrow-trend-up"></i>Total EXP</div><div class="stat-val" id="statExp">0</div></div>
+        <div class="stat"><div class="stat-label"><i class="fa-regular fa-clock"></i>Engine Uptime</div><div class="stat-val" id="statUptime">0s</div></div>
+      </div>
+
+      <div class="card" style="background:linear-gradient(145deg,rgba(59,130,246,.06),#080e1c)">
+        <div class="card-heading"><i class="fa-solid fa-rocket"></i> Launch New Group</div>
+
+        <div id="launchLock" class="lock-banner" style="display:none">
+          <i class="fa-solid fa-lock"></i>
+          <span>Account mein credit nahi hai. Bot launch karne ke liye <b>Buy Credits</b> par jaayein.</span>
+        </div>
+
+        <form id="launchForm" onsubmit="handleLaunch(event)">
+          <div class="input-row">
+            <div class="field">
+              <label class="label">Server Region</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-globe input-icon"></i>
+                <select id="inRegion" class="select">
+                  <!-- Options dynamically added -->
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Guild ID</label>
+              <div class="input-wrap">
+                <i class="fa-solid fa-shield-halved input-icon"></i>
+                <input id="inGuild" class="input" placeholder="e.g. 3055327268" required>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary w-full" id="launchBtn" style="padding:14px;font-size:14px">
+            <i class="fa-solid fa-bolt"></i> Start Glory Pushing
+          </button>
+        </form>
+      </div>
+
+      <div id="groupsList"></div>
+    </section>
+
+    <!-- ═══════════ CREDITS ═══════════ -->
+    <section id="view-credits" class="view">
+      <div class="card tinted-gold">
+        <div class="card-heading"><i class="fa-solid fa-wallet" style="color:var(--gold)"></i> Buy Credits</div>
+        <p class="muted" style="margin-bottom:12px">Choose a package, pay via admin's UPI QR, then submit your UTR.</p>
+        <div id="pkgList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-heading">Manual UPI Payment</div>
+        <div id="payInstr" class="muted" style="margin-bottom:10px">Admin has not configured payment details yet.</div>
+        <div id="qrHolder"></div>
+        <div class="field">
+          <label class="label">Selected amount (₹)</label>
+          <input class="input" id="payAmount" type="number" readonly placeholder="Pick a package">
+        </div>
+        <div class="field">
+          <label class="label">UPI / UTR transaction ID</label>
+          <input class="input" id="payUtr" maxlength="80" placeholder="Enter UTR">
+        </div>
+        <div class="field">
+          <label class="label">Screenshot (optional)</label>
+          <input class="input" id="payProof" type="file" accept="image/*" style="padding-left:14px">
+        </div>
+        <button class="btn btn-gold w-full" style="padding:14px" onclick="submitPayment()">
+          Submit Payment for Review
+        </button>
+        <p class="muted" style="font-size:11px;margin-top:9px">Credits added only after admin verification.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════ HISTORY ═══════════ -->
+    <section id="view-history" class="view">
+      <div class="card">
+        <div class="card-heading"><i class="fa-solid fa-receipt"></i> Transactions</div>
+        <div id="txList" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════ COUPONS ═══════════ -->
+    <section id="view-coupons" class="view">
+      <div class="card tinted-gold">
+        <div class="card-heading"><i class="fa-solid fa-gift" style="color:var(--gold)"></i> Redeem a Coupon</div>
+        <input class="input" id="redeemCode" placeholder="XXXX-XXXX-XXXX" style="margin-bottom:10px;padding-left:14px">
+        <button class="btn btn-gold w-full" style="padding:12px" onclick="redeemCoupon()">Redeem Coupon</button>
+      </div>
+    </section>
+
+    <!-- ═══════════ CONTACT ═══════════ -->
+    <section id="view-contact" class="view">
+      <div class="card">
+        <div class="card-heading"><i class="fa-solid fa-message"></i> Contact Us</div>
+        <p class="muted" style="margin-bottom:14px">Reach out for orders, support, or any questions.</p>
+        <div id="contactLinks" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════ ADMIN ═══════════ -->
+    <section id="view-admin" class="view">
+      <div class="admin-shell">
+        <div class="admin-head">
+          <div class="admin-brand">⚡ FF GLORY ADMIN<small>CONTROL PANEL · ADMINISTRATOR</small></div>
+          <span class="badge green"><i class="fa-solid fa-signal"></i> Live</span>
+        </div>
+
+        <div class="admin-tabs" id="adminTabs">
+          <button class="admin-tab active" onclick="adminTab('dashboard',this)">▦ Dashboard</button>
+          <button class="admin-tab" onclick="adminTab('users',this)">♟ Users</button>
+          <button class="admin-tab" onclick="adminTab('payments',this)">▤ Payments</button>
+          <button class="admin-tab" onclick="adminTab('codes',this)">▣ Codes</button>
+          <button class="admin-tab" onclick="adminTab('modify',this)">◉ Packages</button>
+          <button class="admin-tab" onclick="adminTab('settings',this)">⚙ Settings</button>
+        </div>
+
+        <!-- ADMIN: DASHBOARD -->
+        <div class="admin-page active" id="adminPage-dashboard">
+          <div class="admin-kicker">OVERVIEW</div>
+          <div class="admin-stats">
+            <div class="admin-stat"><span>Users</span><b id="adUsers">0</b><small>Registered accounts</small></div>
+            <div class="admin-stat"><span>Bot Accounts</span><b id="adBots">0</b><small>Created by engine</small></div>
+            <div class="admin-stat"><span>Running Guilds</span><b id="adGuilds">0</b><small>Active groups</small></div>
+            <div class="admin-stat"><span>Pending Payments</span><b id="adPending">0</b><small>Need review</small></div>
+            <div class="admin-stat"><span>Codes</span><b id="adCodes">0</b><small>Coupons created</small></div>
+            <div class="admin-stat revenue"><span>Total Revenue</span><b id="adRevenue">₹0</b><small>Approved payments</small></div>
+          </div>
+
+          <!-- System Control (Maintenance Mode) -->
+          <div class="admin-block" style="border-color: rgba(248,113,113,.3); background: rgba(248,113,113,.05);">
+            <div class="item-row">
+              <div>
+                <h3 style="margin:0; color:#fca5a5">System Maintenance</h3>
+                <p class="muted" style="font-size:11px;margin-top:4px">Turn ON to lock user access (Admin stays logged in).</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="maintenanceToggle" onchange="toggleMaintenance(this)">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          
+          <!-- Live Engine Logs (Terminal) -->
+          <div class="admin-block">
+            <div class="item-row" style="margin-bottom:10px">
+              <h3 style="margin:0">🖥️ Live Engine Logs</h3>
+              <button class="btn btn-sm" onclick="fetchLogs()">Refresh</button>
+            </div>
+            <div class="terminal" id="terminalBox">
+              <div class="log-line info">[i] Waiting for engine logs...</div>
+            </div>
+          </div>
+
+          <div class="admin-block">
+            <h3>🟢 Online Now</h3>
+            <div class="online-chips" id="adOnline"><span class="online-chip">Admin</span></div>
+          </div>
+        </div>
+
+        <!-- ADMIN: USERS -->
+        <div class="admin-page" id="adminPage-users">
+          <div class="admin-block"><h3>Users Management</h3><div id="adUserList"></div></div>
+        </div>
+
+        <!-- ADMIN: PAYMENTS -->
+        <div class="admin-page" id="adminPage-payments">
+          <div class="admin-block"><h3>Payment Requests</h3><div id="adPayList" class="list"></div></div>
+        </div>
+
+        <!-- ADMIN: CODES -->
+        <div class="admin-page" id="adminPage-codes">
+          <div class="admin-block">
+            <h3>Generate Coupons</h3>
+            <div class="input-row" style="margin-bottom:10px">
+              <input class="input" id="adCodeCredits" type="number" min="1" placeholder="Credits" style="padding-left:14px">
+              <input class="input" id="adCodeCount" type="number" min="1" max="100" value="1" placeholder="Count" style="padding-left:14px">
+            </div>
+            <button class="btn btn-primary w-full" style="padding:11px" onclick="adminGenCodes()">Generate Codes</button>
+            <div id="adCodeList" class="list" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <!-- ADMIN: MODIFY (PACKAGES) -->
+        <div class="admin-page" id="adminPage-modify">
+          <div class="admin-block">
+            <h3>Credit Packages</h3>
+            <input class="input" id="pkgName" placeholder="Package name" style="padding-left:14px;margin-bottom:8px">
+            <div class="input-row" style="margin-bottom:10px">
+              <input class="input" id="pkgPrice" type="number" min="1" placeholder="₹ price" style="padding-left:14px">
+              <input class="input" id="pkgCredits" type="number" min="1" placeholder="Credits" style="padding-left:14px">
+            </div>
+            <button class="btn btn-primary w-full" style="padding:11px" onclick="adminAddPackage()">Add Package</button>
+            <div id="adPackages" class="list" style="margin-top:12px"></div>
+          </div>
+        </div>
+
+        <!-- ADMIN: SETTINGS -->
+        <div class="admin-page" id="adminPage-settings">
+          
+          <!-- Server & Pricing Settings -->
+          <div class="admin-block" style="border-color:#fbbf24; margin-bottom: 20px;">
+            <h3 style="color:#fbbf24">⚙️ Server & Pricing Config</h3>
+            
+            <label class="label" style="margin-top:10px">Available Servers (Comma separated)</label>
+            <input class="input" id="setServers" placeholder="IND, BD, PK, ID" style="padding-left:14px;margin-bottom:10px">
+            
+            <div class="input-row" style="margin-bottom:10px">
+              <div>
+                <label class="label">Launch Cost (Credits)</label>
+                <input class="input" id="setLaunchCost" type="number" min="0" placeholder="e.g. 1" style="padding-left:14px">
+              </div>
+              <div>
+                <label class="label">Credit Price (₹)</label>
+                <input class="input" id="setCreditPrice" type="number" min="1" placeholder="e.g. 10" style="padding-left:14px">
+              </div>
+            </div>
+            <button class="btn btn-gold w-full" style="padding:11px" onclick="savePricingSettings()">Save Config</button>
+          </div>
+
+          <!-- Change Admin Password -->
+          <div class="admin-block" style="border-color:#3b82f6; margin-bottom: 20px;">
+            <h3 style="color:#60a5fa">🔒 Change Admin Credentials</h3>
+            <div class="input-row" style="margin-bottom:10px">
+              <input class="input" id="newAdminUser" placeholder="New Username" style="padding-left:14px">
+              <input class="input" id="newAdminPass" type="password" placeholder="New Password" style="padding-left:14px">
+            </div>
+            <button class="btn btn-primary w-full" style="padding:11px" onclick="changeAdminPass()">Update Credentials</button>
+          </div>
+
+          <div class="admin-block">
+            <h3>Payment Settings</h3>
+            <label class="label">UPI ID</label>
+            <input class="input" id="setUpi" placeholder="yourname@upi" style="padding-left:14px;margin-bottom:10px">
+            <label class="label">Payee Name</label>
+            <input class="input" id="setPayee" placeholder="FF GLORY" style="padding-left:14px;margin-bottom:10px">
+            <label class="label">Payment Instructions</label>
+            <textarea class="input" id="setInstr" rows="3" style="margin-bottom:10px"></textarea>
+            <label class="label">QR Code Image</label>
+            <input class="input" id="setQr" type="file" accept="image/*" style="padding-left:14px;margin-bottom:10px">
+            <div id="qrPrev"></div>
+            <button class="btn btn-primary w-full" style="padding:11px" onclick="adminSaveSettings()">Save Payment Settings</button>
+            <hr style="border:0;border-top:1px solid #1a2438;margin:16px 0">
+            <h3>Contact Links</h3>
+            <label class="label">WhatsApp URL</label>
+            <input class="input" id="setWa" placeholder="https://wa.me/..." style="padding-left:14px;margin-bottom:10px">
+            <label class="label">Telegram URL</label>
+            <input class="input" id="setTg" placeholder="https://t.me/..." style="padding-left:14px;margin-bottom:10px">
+            <button class="btn btn-primary w-full" style="padding:11px" onclick="adminSaveContacts()">Save Contact Links</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- MODAL: Bot Control Center -->
+<div class="modal" id="modalBots">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2><i class="fa-solid fa-list-ul"></i> Bot Control Center</h2>
+      <button class="modal-close" onclick="closeModal('modalBots')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modalBotsBody"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = ""; 
+const LS_KEY = "ffglory_ui_v1";
+const LS_USERS = "ffglory_users_v1";
+const SS_SESSION = "ffglory_session_v1";
+
+let state = {
+  packages: [
+    {id:'p1', name:'4 GLORY BOTS — SPECIAL', price:40, credits:4},
+    {id:'p2', name:'4 GLORY BOTS', price:95, credits:4}
+  ],
+  payments: [],
+  transactions: [],
+  coupons: [],
+  settings: {
+    upi:'', payee:'FF GLORY',
+    instructions:'Pay the exact amount and submit your UTR for review.',
+    qr:'', whatsapp:'', telegram:'',
+    servers: ["IND", "BD", "PK", "ID", "BR", "ME"],
+    launchCost: 1,
+    creditPrice: 10
+  }
+};
+
+function loadData(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    if(saved.packages) state.packages = saved.packages;
+    if(saved.payments) state.payments = saved.payments;
+    if(saved.transactions) state.transactions = saved.transactions;
+    if(saved.coupons) state.coupons = saved.coupons;
+    if(saved.settings) state.settings = {...state.settings, ...saved.settings};
+  }catch(e){}
+}
+function saveData(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+loadData();
+
+function users(){ try{ return JSON.parse(localStorage.getItem(LS_USERS)||'[]'); }catch(e){ return []; } }
+function saveUsers(u){ try{ localStorage.setItem(LS_USERS, JSON.stringify(u)); }catch(e){} }
+function currentUser(){
+  const s = window.__session;
+  if(!s || s.role!=='user') return null;
+  return users().find(u=>u.email===s.email) || null;
+}
+function userCredits(){
+  const u = currentUser();
+  return u ? Number(u.credits||0) : 0;
+}
+function setUserCredits(n){
+  const arr = users();
+  const i = arr.findIndex(u=>u.email===window.__session?.email);
+  if(i>=0){
+    arr[i].credits = Math.max(0, Number(n)||0);
+    saveUsers(arr);
+    window.__session = arr[i];
+  }
+}
+
+const esc = v => String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtN = n => Number(n||0).toLocaleString();
+const fmtDur = s => { s=Math.max(0,Math.floor(Number(s)||0)); const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return h?`${h}h ${m}m`:m?`${m}m ${ss}s`:`${ss}s`; };
+
+function toast(msg, type='info'){
+  const box = document.getElementById('toast');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icon = type==='success'?'fa-check-circle':type==='error'?'fa-triangle-exclamation':'fa-info-circle';
+  el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${esc(msg)}</span>`;
+  box.appendChild(el);
+  setTimeout(()=>{ el.style.opacity=0; el.style.transform='translateX(100%)'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 3400);
+}
+
+function readFile(file, cb){
+  if(!file) return cb('');
+  if(file.size > 1_200_000){ toast('Image must be under 1.2 MB', 'error'); return; }
+  const r = new FileReader();
+  r.onload = () => cb(r.result);
+  r.readAsDataURL(file);
+}
+
+// ================= AUTHENTICATION =================
+let authMode = 'login';
+function switchAuthMode(mode){
+  authMode = mode;
+  const reg = mode==='register';
+  document.getElementById('tabLogin').classList.toggle('active', !reg);
+  document.getElementById('tabRegister').classList.toggle('active', reg);
+  document.getElementById('fieldName').hidden = !reg;
+  document.getElementById('fieldEmail').hidden = !reg;
+  document.getElementById('authEmail').required = reg;
+  document.getElementById('authBtn').textContent = reg ? 'Create Account' : 'Login to Dashboard';
+  document.getElementById('authError').textContent = '';
+}
+
+async function handleAuth(e){
+  e.preventDefault();
+  const username = document.getElementById('authUsername').value.trim().toLowerCase();
+  const password = document.getElementById('authPassword').value;
+  const email    = document.getElementById('authEmail').value.trim().toLowerCase();
+  const name     = document.getElementById('authName').value.trim();
+  const errEl    = document.getElementById('authError');
+  errEl.textContent = '';
+
+  window.__session = null;
+  sessionStorage.removeItem(SS_SESSION);
+
+  if(!username || !password){ errEl.textContent = 'Username & password required.'; return; }
+
+  if(authMode === 'register'){
+    if(!name || !email){ errEl.textContent = 'Name & email required.'; return; }
+    const arr = users();
+    if(arr.some(u=>u.email===email || u.username===username)){ errEl.textContent = 'Email or username already exists.'; return; }
+    arr.push({name, email, username, password, credits:0, created:new Date().toISOString()});
+    saveUsers(arr);
+    login({name, email, username, role:'user'});
+    return;
+  }
+
+  // ADMIN LOGIN via API
+  try {
+    const r = await fetch(API + '/api/admin_login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username, password})
+    });
+    const d = await r.json();
+    if(d.ok) {
+      login({name:'FF GLORY Admin', email:'admin@ffglory.com', username, role:'admin'});
+      return;
+    }
+  } catch(e){}
+
+  // USER LOGIN
+  const u = users().find(u=>u.username===username && u.password===password);
+  if(!u){ errEl.textContent = 'Invalid username or password.'; return; }
+  login({...u, role:'user'});
+}
+
+function login(user){
+  window.__session = user;
+  sessionStorage.setItem(SS_SESSION, JSON.stringify({email:user.email, role:user.role}));
+  document.getElementById('authGate').hidden = true;
+  document.getElementById('sessionChip').textContent = (user.username||user.email) + ' · ' + user.role.toUpperCase();
+  const adminTab = document.getElementById('adminTab');
+  adminTab.classList.toggle('hidden', user.role !== 'admin');
+  
+  if(user.role === 'admin'){
+    go('admin', document.querySelector('[data-view="admin"]'));
+    renderAdmin();
+  } else {
+    go('home', document.querySelector('[data-view="home"]'));
+  }
+  refreshCreditsUI();
+  renderContacts();
+  syncMaintenanceState();
+  loadServerList();
+}
+
+function logout(){
+  window.__session = null;
+  sessionStorage.removeItem(SS_SESSION);
+  document.getElementById('authGate').hidden = false;
+  document.getElementById('authForm').reset();
+  document.getElementById('sessionChip').textContent = 'Signed out';
+  document.getElementById('adminTab').classList.add('hidden');
+  document.getElementById('maintenanceBanner').classList.remove('show');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  switchAuthMode('login');
+}
+
+function restoreSession(){
+  try{
+    const s = JSON.parse(sessionStorage.getItem(SS_SESSION)||'null');
+    if(s){
+      if(s.role === 'user'){
+        const u = users().find(x=>x.email===s.email);
+        if(u) login({...u, role:'user'});
+      } else if(s.role === 'admin') {
+        login({name:'FF GLORY Admin', email:'admin@ffglory.com', username:'admin', role:'admin'});
+      }
+    }
+  }catch(e){}
+}
+
+// ================= NAVIGATION =================
+function go(name, el){
+  const isMaintenance = document.getElementById('maintenanceBanner').classList.contains('show');
+  if (isMaintenance && window.__session?.role !== 'admin' && name !== 'home') return;
+
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id===`view-${name}`));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===name));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  closeSidebar();
+
+  if(name==='credits') renderPackages();
+  if(name==='history') renderHistory();
+  if(name==='coupons') renderCoupons();
+  if(name==='contact') renderContacts();
+  if(name==='admin') renderAdmin();
+}
+
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('open');
+  document.body.classList.toggle('sb-open', sb.classList.contains('open'));
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.body.classList.remove('sb-open');
+}
+
+// ================= CREDITS & LAUNCH =================
+function refreshCreditsUI(){
+  const b = userCredits();
+  document.getElementById('userCredits').textContent = b;
+  updateLaunchLock();
+}
+
+function updateLaunchLock(){
+  const form = document.getElementById('launchForm');
+  const banner = document.getElementById('launchLock');
+  const btn = document.getElementById('launchBtn');
+  if(!form) return;
+  
+  const cost = state.settings.launchCost || 1;
+  const ok = userCredits() >= cost;
+  const isMaintenance = document.getElementById('maintenanceBanner').classList.contains('show');
+  
+  banner.style.display = (ok && !isMaintenance) ? 'none' : 'flex';
+  btn.disabled = !ok || isMaintenance;
+  btn.innerHTML = (ok && !isMaintenance)
+    ? `<i class="fa-solid fa-bolt"></i> Start Glory Pushing (Cost: ${cost} cr)`
+    : '<i class="fa-solid fa-lock"></i> Insufficient Credits / Maintenance';
+  form.querySelectorAll('input,select').forEach(x=>x.disabled = (!ok || isMaintenance));
+}
+
+async function handleLaunch(e){
+  e.preventDefault();
+  const isMaintenance = document.getElementById('maintenanceBanner').classList.contains('show');
+  if(isMaintenance) { toast('Maintenance mode ON. Cannot launch.', 'error'); return; }
+
+  const cost = state.settings.launchCost || 1;
+  const region = document.getElementById('inRegion').value;
+  const guild  = document.getElementById('inGuild').value.trim();
+
+  if(!guild || !/^\d+$/.test(guild)){ toast('Enter a valid numeric Guild ID.', 'error'); return; }
+  if(userCredits() < cost){ toast(`Need at least ${cost} credits to launch.`, 'error'); go('credits', document.querySelector('[data-view="credits"]')); return; }
+
+  const btn = document.getElementById('launchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner spin"></i> Processing…';
+
+  try{
+    const resp = await fetch(API + '/api/create_team', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({region, guild_id: guild, count: 4})
+    });
+    const data = await resp.json();
+    if(!data.ok) throw new Error(data.error || 'Launch failed');
+
+    // EXACT COST DEDUCTION
+    setUserCredits(userCredits() - cost);
+    state.transactions.unshift({type:'Bot Launch', amount:cost, status:'SUCCESS', ref: guild, email: window.__session.email, created: new Date().toISOString()});
+    saveData();
+    refreshCreditsUI();
+    document.getElementById('inGuild').value = '';
+    toast('Bots launching!', 'success');
+    pollGroups();
+  }catch(err){ toast(err.message || 'Launch failed', 'error'); }
+  finally{ btn.disabled = false; updateLaunchLock(); }
+}
+
+// ================= SERVERS & CONFIG =================
+async function loadServerList() {
+  try {
+    const r = await fetch(API + '/api/settings');
+    const d = await r.json();
+    
+    if(d.servers) state.settings.servers = d.servers;
+    if(d.launch_cost) state.settings.launchCost = d.launch_cost;
+    if(d.credit_price) state.settings.creditPrice = d.credit_price;
+
+    // Populate user dropdown
+    const sel = document.getElementById('inRegion');
+    sel.innerHTML = state.settings.servers.map(s => `<option value="${s}">${s} Server</option>`).join('');
+
+    // Populate admin inputs
+    document.getElementById('setServers').value = state.settings.servers.join(', ');
+    document.getElementById('setLaunchCost').value = state.settings.launchCost;
+    document.getElementById('setCreditPrice').value = state.settings.creditPrice;
+    
+    updateLaunchLock();
+  } catch(e) {
+    // Fallback to IND if offline
+    const sel = document.getElementById('inRegion');
+    if(sel.options.length === 0) sel.innerHTML = '<option value="IND">IND Server</option>';
+  }
+}
+
+async function savePricingSettings() {
+  const rawServers = document.getElementById('setServers').value.trim();
+  const servers = rawServers.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s);
+  const launch_cost = Number(document.getElementById('setLaunchCost').value);
+  const credit_price = Number(document.getElementById('setCreditPrice').value);
+
+  if(servers.length === 0) { toast('Enter at least one server.', 'error'); return; }
+  if(launch_cost < 0) { toast('Invalid launch cost.', 'error'); return; }
+  if(credit_price < 1) { toast('Invalid credit price.', 'error'); return; }
+
+  try {
+    const r = await fetch(API + '/api/settings', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({servers, launch_cost, credit_price})
+    });
+    const d = await r.json();
+    if(d.ok) {
+      toast('Server & Pricing settings updated!', 'success');
+      loadServerList();
+    } else {
+      toast(d.error || 'Failed to save', 'error');
+    }
+  } catch(e) { toast('Server error', 'error'); }
+}
+
+// ================= API STATS & GROUPS =================
+async function fetchStats(){
+  try{
+    const s = await fetch(API + '/api/stats').then(r=>r.json());
+    document.getElementById('statBots').textContent = fmtN(s.total_accounts||0);
+    document.getElementById('statMatches').textContent = fmtN(s.matches_started||0);
+    document.getElementById('statExp').textContent = fmtN(s.total_gained_exp||0);
+    document.getElementById('statUptime').textContent = fmtDur(s.uptime||0);
+    document.querySelector('.sys-desc').textContent = `Engine up ${fmtDur(s.uptime||0)}`;
+  }catch(e){}
+}
+
+async function pollGroups(){
+  try{
+    const data = await fetch(API + '/api/groups').then(r=>r.json());
+    renderGroups(data.groups || []);
+  }catch(e){
+    document.getElementById('groupsList').innerHTML = emptyState('fa-ghost', 'Engine offline', 'Start main.py so /api/groups can respond.');
+  }
+}
+
+async function fetchLogs(){
+  try{
+    const data = await fetch(API + '/api/logs').then(r=>r.json());
+    const logs = data.logs || [];
+    const box = document.getElementById('terminalBox');
+    
+    if(!logs.length) {
+      box.innerHTML = '<div class="log-line info">[i] No logs yet. Engine starting...</div>';
+      return;
+    }
+
+    box.innerHTML = logs.map(l => {
+      let cls = 'info';
+      if(l.level === 'error') cls = 'err';
+      if(l.level === 'warning') cls = 'warn';
+      if(l.level === 'success') cls = 'suc';
+      return `<div class="log-line ${cls}">[${l.time}] ${esc(l.message)}</div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }catch(e){
+    document.getElementById('terminalBox').innerHTML = '<div class="log-line err">[-] Failed to fetch logs from server.</div>';
+  }
+}
+
+async function fetchAll(notify){
+  await Promise.all([fetchStats(), pollGroups()]);
+  if(window.__session?.role === 'admin') await fetchLogs();
+  if(notify) toast('Refreshed', 'info');
+}
+
+function renderGroups(groups){
+  const box = document.getElementById('groupsList');
+  if(!groups.length){
+    box.innerHTML = emptyState('fa-ghost', 'No Active Groups', 'Launch a group to start pushing glory.');
+    return;
+  }
+
+  box.innerHTML = groups.map(g=>{
+    const cls = g.status==='RUNNING' ? 'running' : g.status==='GENERATING' ? 'generating' : 'failed';
+    const pill = g.status==='RUNNING' ? 'green' : g.status==='GENERATING' ? 'gold' : 'red';
+    const gi = g.guild_info || {};
+    return `
+      <div class="group-card ${cls}">
+        <div class="gc-head">
+          <div class="gc-avatar"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="gc-info">
+            <div class="gc-name">${esc(g.clan_name || 'Guild '+g.guild_id)}</div>
+            <div class="gc-tags"><span>ID: ${esc(g.guild_id)}</span> · <span>${esc(g.region)}</span></div>
+            <div class="gc-glory-label">Clan Total Glory</div>
+            <div class="gc-glory gold">${fmtN(g.current_score||gi.score||0)}</div>
+          </div>
+          <span class="badge ${pill}">${esc(g.status)}</span>
+        </div>
+        <div class="gc-row2">
+          <div><div class="gc-cell-label"><i class="fa-solid fa-users"></i> Members</div><div class="gc-cell-val">${g.current_members||0}/${g.max_members||35}</div></div>
+          <div><div class="gc-cell-label"><i class="fa-solid fa-crown"></i> Leader</div><div class="gc-cell-val">${esc(g.leader_id||'—')}</div></div>
+          <div><div class="gc-cell-label"><i class="fa-solid fa-arrow-trend-up"></i> Weekly</div><div class="gc-cell-val green">${fmtN(g.current_weekly||0)}</div></div>
+          <div><div class="gc-cell-label"><i class="fa-solid fa-bolt"></i> Pushed</div><div class="gc-cell-val green">+${fmtN(g.glory_pushed||0)}</div></div>
+        </div>
+        <div class="gc-actions">
+          <button class="btn btn-sm" onclick="restartGroup('${esc(g.group_key)}')"><i class="fa-solid fa-rotate-right"></i> Restart</button>
+          <button class="btn btn-sm btn-danger" onclick="stopGroup('${esc(g.group_key)}')"><i class="fa-solid fa-stop"></i> Stop</button>
+          <button class="btn btn-sm btn-primary" onclick="showBots('${esc(g.group_key)}')"><i class="fa-solid fa-sliders"></i> Bots</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function stopGroup(key){
+  if(!confirm('Stop this group?')) return;
+  try{
+    await fetch(API + '/api/groups/stop', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({group_key: key}) });
+    toast('Group stopped', 'info'); pollGroups();
+  }catch(e){ toast('Stop failed', 'error'); }
+}
+async function restartGroup(key){
+  if(!confirm('Restart this group?')) return;
+  toast('Restarting...', 'success'); pollGroups();
+}
+
+async function showBots(key){
+  const data = await fetch(API + '/api/groups').then(r=>r.json()).catch(()=>({groups:[]}));
+  const grp = (data.groups||[]).find(g=>g.group_key === key);
+  if(!grp) return;
+  const body = document.getElementById('modalBotsBody');
+  const accs = grp.accounts || [];
+  if(!accs.length){ body.innerHTML = emptyState('fa-spinner', 'Bots generating…', 'Please wait.'); }
+  else {
+    body.innerHTML = accs.map(a=>`
+      <div class="bot-row">
+        <div class="bot-left">
+          <div class="bot-icon"><i class="fa-solid fa-gamepad"></i></div>
+          <div style="min-width:0">
+            <div class="bot-name">${esc(a.nickname||'Bot')} <span class="badge blue">${esc(a.status||'ONLINE')}</span></div>
+            <div class="bot-uid">UID: ${esc(a.uid||'—')}</div>
+          </div>
+        </div>
+        <div class="bot-right">
+          <div style="text-align:right;font-size:11px;font-weight:700">
+            <div>Lv ${a.level||1}</div>
+            <div style="color:var(--green)">+${fmtN(a.gained_exp||0)}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  openModal('modalBots');
+}
+
+// ================= USER PAGES =================
+function renderPackages(){
+  const box = document.getElementById('pkgList');
+  box.innerHTML = state.packages.length
+    ? state.packages.map(p=>`
+        <div class="pkg" onclick="pickPkg('${esc(p.id)}',${Number(p.price)})">
+          <div><div class="pkg-title">${esc(p.name)}</div><div class="pkg-sub">${p.credits} credits</div></div>
+          <div class="pkg-price">₹${p.price}</div>
+        </div>`).join('')
+    : emptyState('fa-tag', 'No packages', 'Admin has not added any packages yet.');
+
+  const s = state.settings;
+  document.getElementById('payInstr').innerHTML = `<b>${esc(s.payee||'')}</b><br>UPI: <b>${esc(s.upi||'Not configured')}</b><br>${esc(s.instructions||'')}`;
+  document.getElementById('qrHolder').innerHTML = s.qr ? `<img src="${s.qr}" style="max-width:200px;display:block;margin:10px auto;border-radius:10px;background:#fff;padding:8px">` : '';
+}
+
+function pickPkg(id, price){
+  document.getElementById('payAmount').value = price;
+  document.querySelectorAll('.pkg').forEach(p=>p.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+async function submitPayment(){
+  const amount = Number(document.getElementById('payAmount').value);
+  const utr = document.getElementById('payUtr').value.trim();
+  const file = document.getElementById('payProof').files[0];
+  if(!amount || !utr){ toast('Select a package & enter UTR.', 'error'); return; }
+  if(!state.settings.upi){ toast('Admin UPI not configured.', 'error'); return; }
+
+  readFile(file, proof => {
+    state.payments.unshift({ id:'PAY-'+Date.now(), amount, utr, proof, status:'PENDING', email: window.__session.email, username: window.__session.username, created: new Date().toISOString() });
+    state.transactions.unshift({ type:'Payment request', amount, status:'PENDING', ref: utr, email: window.__session.email, created: new Date().toISOString() });
+    saveData();
+    document.getElementById('payUtr').value = '';
+    document.getElementById('payProof').value = '';
+    toast('Submitted for review.', 'success');
+    renderHistory();
+  });
+}
+
+function renderHistory(){
+  const box = document.getElementById('txList');
+  const rows = state.transactions.filter(t=>!t.email || t.email===window.__session?.email);
+  if(!rows.length){ box.innerHTML = emptyState('fa-receipt', 'No transactions yet', ''); return; }
+  box.innerHTML = rows.map(t=>`
+    <div class="item">
+      <div class="item-row"><b>${esc(t.type)}</b><span class="badge ${t.status==='SUCCESS'||t.status==='APPROVED'?'green':t.status==='PENDING'?'gold':'red'}">${esc(t.status)}</span></div>
+      <div class="item-sub">${esc(t.ref||'')} · ${new Date(t.created).toLocaleString()}</div>
+      <div class="item-row" style="margin-top:6px"><span class="muted">Amount</span><span class="item-amount">₹${t.amount}</span></div>
+    </div>
+  `).join('');
+}
+
+function renderCoupons(){
+  // Removed Create Coupon for user
+}
+
+function redeemCoupon(){
+  const code = document.getElementById('redeemCode').value.trim().toUpperCase();
+  const c = state.coupons.find(x=>x.code===code && !x.used);
+  if(!c){ toast('Coupon invalid or already used.', 'error'); return; }
+  c.used = true;
+  setUserCredits(userCredits() + Number(c.credits));
+  state.transactions.unshift({type:'Coupon redeemed', amount:c.credits, status:'SUCCESS', ref:code, email:window.__session.email, created:new Date().toISOString()});
+  saveData(); refreshCreditsUI();
+  document.getElementById('redeemCode').value = '';
+  toast('Redeemed successfully! Credits added.', 'success');
+}
+
+function renderContacts(){
+  const s = state.settings;
+  const box = document.getElementById('contactLinks');
+  const items = [];
+  if(s.whatsapp) items.push(`<a class="item" href="${esc(s.whatsapp)}" target="_blank" rel="noopener" style="text-decoration:none;color:var(--text)"><div class="item-row"><b><i class="fa-brands fa-whatsapp" style="color:#25d366"></i> WhatsApp Support</b><i class="fa-solid fa-arrow-right"></i></div></a>`);
+  if(s.telegram) items.push(`<a class="item" href="${esc(s.telegram)}" target="_blank" rel="noopener" style="text-decoration:none;color:var(--text)"><div class="item-row"><b><i class="fa-brands fa-telegram" style="color:#229ed9"></i> Telegram Channel</b><i class="fa-solid fa-arrow-right"></i></div></a>`);
+  box.innerHTML = items.length ? items.join('') : emptyState('fa-message', 'No contact links', 'Admin will configure WhatsApp/Telegram here.');
+}
+
+// ================= ADMIN PANEL =================
+function openAdmin(){
+  if(window.__session?.role !== 'admin'){ toast('Admin access required.', 'error'); return; }
+  go('admin', document.querySelector('[data-view="admin"]'));
+  fetchLogs();
+  syncMaintenanceState();
+}
+
+function adminTab(name, el){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.toggle('active', p.id==='adminPage-'+name));
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(name==='dashboard' || name==='users' || name==='payments' || name==='codes' || name==='modify' || name==='settings') renderAdmin();
+  if(name==='dashboard') fetchLogs();
+}
+
+function renderAdmin(){
+  const paid = state.payments.filter(p=>p.status==='APPROVED');
+  document.getElementById('adUsers').textContent = users().length;
+  document.getElementById('adBots').textContent = document.getElementById('statBots').textContent || '0';
+  document.getElementById('adGuilds').textContent = document.getElementById('statBots').textContent || '0';
+  document.getElementById('adPending').textContent = state.payments.filter(p=>p.status==='PENDING').length;
+  document.getElementById('adCodes').textContent = state.coupons.length;
+  document.getElementById('adRevenue').textContent = '₹' + paid.reduce((a,p)=>a+Number(p.amount||0),0);
+  
+  const arr = users();
+  document.getElementById('adUserList').innerHTML = arr.length ? arr.map(u=>`
+    <div class="admin-userrow">
+      <div><b>${esc(u.username)}</b><div class="muted" style="font-size:11px">${esc(u.email)}</div></div>
+      <span class="admin-pill">${Number(u.credits||0)} cr</span>
+      <button class="btn btn-sm" onclick="adminAddCredit('${esc(u.email)}')">+ Credits</button>
+    </div>
+  `).join('') : emptyState('fa-users', 'No users yet', 'No one has registered.');
+
+  document.getElementById('adPayList').innerHTML = state.payments.length ? state.payments.map(p=>`
+    <div class="item">
+      <div class="item-row"><b>₹${p.amount} · ${esc(p.utr)}</b><span class="badge ${p.status==='PENDING'?'gold':p.status==='APPROVED'?'green':'red'}">${p.status}</span></div>
+      <div class="item-sub">${esc(p.username||p.email)} · ${new Date(p.created).toLocaleString()}</div>
+      ${p.proof?`<img src="${p.proof}" style="max-width:100%;max-height:150px;margin-top:8px;border-radius:8px">`:''}
+      ${p.status==='PENDING'?`<div class="item-row" style="margin-top:8px"><button class="btn btn-sm btn-primary" onclick="reviewPay('${p.id}',true)">Approve</button><button class="btn btn-sm btn-danger" onclick="reviewPay('${p.id}',false)">Reject</button></div>`:''}
+    </div>
+  `).join('') : emptyState('fa-file-invoice', 'No payments', '');
+
+  document.getElementById('adCodeList').innerHTML = state.coupons.length ? state.coupons.map(c=>`
+    <div class="item"><b class="mono">${esc(c.code)}</b> · ${c.credits} credits · ${c.used?'Used':'Available'}</div>
+  `).join('') : emptyState('fa-ticket', 'No codes', '');
+
+  document.getElementById('adPackages').innerHTML = state.packages.map(p=>`
+    <div class="item item-row"><span>${esc(p.name)} · ₹${p.price} · ${p.credits} cr</span><button class="btn btn-sm btn-danger" onclick="delPackage('${esc(p.id)}')">Delete</button></div>
+  `).join('');
+
+  const s = state.settings;
+  document.getElementById('setUpi').value = s.upi||'';
+  document.getElementById('setPayee').value = s.payee||'';
+  document.getElementById('setInstr').value = s.instructions||'';
+  document.getElementById('setWa').value = s.whatsapp||'';
+  document.getElementById('setTg').value = s.telegram||'';
+  document.getElementById('qrPrev').innerHTML = s.qr ? `<img src="${s.qr}" style="max-width:150px;display:block;margin-top:8px;border-radius:8px;background:#fff;padding:6px">` : '';
+  
+  // Load Settings inputs
+  document.getElementById('setServers').value = (s.servers || []).join(', ');
+  document.getElementById('setLaunchCost').value = s.launchCost || 1;
+  document.getElementById('setCreditPrice').value = s.creditPrice || 10;
+}
+
+function adminAddCredit(email){
+  const n = Number(prompt('Credits to add for ' + email + '?', '1'));
+  if(!Number.isInteger(n) || n < 1) return;
+  const arr = users(); const u = arr.find(x=>x.email===email);
+  if(!u) return; u.credits = Number(u.credits||0) + n; saveUsers(arr);
+  toast(n + ' credits added', 'success'); renderAdmin();
+}
+
+function adminGenCodes(){
+  const credits = Math.floor(Number(document.getElementById('adCodeCredits').value));
+  const count = Math.min(100, Math.floor(Number(document.getElementById('adCodeCount').value)||1));
+  if(credits < 1 || count < 1){ toast('Invalid inputs', 'error'); return; }
+  for(let i=0;i<count;i++){
+    const code = Array.from({length:3},()=>Math.random().toString(36).slice(2,6).toUpperCase()).join('-');
+    state.coupons.unshift({code, credits, used:false});
+  }
+  saveData(); renderAdmin(); toast(count + ' codes generated', 'success');
+}
+
+function adminAddPackage(){
+  const name = document.getElementById('pkgName').value.trim();
+  const price = Number(document.getElementById('pkgPrice').value);
+  const credits = Math.floor(Number(document.getElementById('pkgCredits').value));
+  if(!name || price < 1 || credits < 1){ toast('Invalid package details', 'error'); return; }
+  state.packages.push({id:'p'+Date.now(), name, price, credits});
+  saveData(); renderAdmin(); renderPackages(); toast('Package added', 'success');
+}
+
+function delPackage(id){
+  state.packages = state.packages.filter(p=>p.id!==id);
+  saveData(); renderAdmin(); renderPackages();
+}
+
+function reviewPay(id, approve){
+  const p = state.payments.find(x=>x.id===id);
+  if(!p || p.status !== 'PENDING') return;
+  p.status = approve ? 'APPROVED' : 'REJECTED';
+  if(approve){
+    const pack = state.packages.find(x=>Number(x.price)===Number(p.amount));
+    const cr = pack ? Number(pack.credits) : 0;
+    const arr = users(); const u = arr.find(x=>x.email===p.email);
+    if(u && cr){ u.credits = Number(u.credits||0) + cr; saveUsers(arr); }
+    state.transactions.unshift({type:'Payment approved', amount:p.amount, status:'APPROVED', ref:p.utr, email:p.email, created:new Date().toISOString()});
+  } else {
+    state.transactions.unshift({type:'Payment rejected', amount:p.amount, status:'REJECTED', ref:p.utr, email:p.email, created:new Date().toISOString()});
+  }
+  saveData(); refreshCreditsUI(); renderAdmin();
+  toast(approve ? 'Approved & credits added' : 'Rejected', approve ? 'success' : 'info');
+}
+
+function adminSaveSettings(){
+  state.settings.upi = document.getElementById('setUpi').value.trim();
+  state.settings.payee = document.getElementById('setPayee').value.trim();
+  state.settings.instructions = document.getElementById('setInstr').value.trim();
+  saveData();
+  const file = document.getElementById('setQr').files[0];
+  readFile(file, src => {
+    if(src) state.settings.qr = src;
+    saveData(); renderAdmin(); renderPackages(); toast('Settings saved', 'success');
+  });
+}
+
+function adminSaveContacts(){
+  state.settings.whatsapp = document.getElementById('setWa').value.trim();
+  state.settings.telegram = document.getElementById('setTg').value.trim();
+  saveData(); renderContacts(); toast('Contacts saved', 'success');
+}
+
+async function changeAdminPass(){
+  const u = document.getElementById('newAdminUser').value.trim();
+  const p = document.getElementById('newAdminPass').value.trim();
+  if(!u || !p) { toast('Enter username and password', 'error'); return; }
+  try {
+    const r = await fetch(API + '/api/change_admin', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: u, password: p})
+    });
+    const d = await r.json();
+    if(d.ok) {
+      toast('Admin credentials updated!', 'success');
+      document.getElementById('newAdminUser').value = '';
+      document.getElementById('newAdminPass').value = '';
+    } else toast(d.error || 'Failed', 'error');
+  } catch(e) { toast('Server error', 'error'); }
+}
+
+async function savePricingSettings() {
+  const rawServers = document.getElementById('setServers').value.trim();
+  const servers = rawServers.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s);
+  const launch_cost = Number(document.getElementById('setLaunchCost').value);
+  const credit_price = Number(document.getElementById('setCreditPrice').value);
+
+  if(servers.length === 0) { toast('Enter at least one server.', 'error'); return; }
+  if(launch_cost < 0) { toast('Invalid launch cost.', 'error'); return; }
+  if(credit_price < 1) { toast('Invalid credit price.', 'error'); return; }
+
+  try {
+    const r = await fetch(API + '/api/settings', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({servers, launch_cost, credit_price})
+    });
+    const d = await r.json();
+    if(d.ok) {
+      toast('Server & Pricing settings updated!', 'success');
+      loadServerList();
+    } else {
+      toast(d.error || 'Failed to save', 'error');
+    }
+  } catch(e) { toast('Server error', 'error'); }
+}
+
+// ================= MAINTENANCE MODE =================
+async function syncMaintenanceState(){
+  try{
+    const r = await fetch(API + '/api/settings');
+    const d = await r.json();
+    document.getElementById('maintenanceToggle').checked = d.maintenance;
+    
+    const banner = document.getElementById('maintenanceBanner');
+    if(d.maintenance && window.__session?.role !== 'admin'){
+      banner.classList.add('show');
+      document.querySelector('.main').style.filter = 'blur(4px)';
+      document.querySelector('.main').style.pointerEvents = 'none';
+      document.querySelector('.topbar').style.filter = 'none';
+      document.querySelector('.topbar').style.pointerEvents = 'auto';
+    } else {
+      banner.classList.remove('show');
+      document.querySelector('.main').style.filter = 'none';
+      document.querySelector('.main').style.pointerEvents = 'auto';
+    }
+  }catch(e){}
+}
+
+async function toggleMaintenance(el){
+  const isOn = el.checked;
+  try{
+    await fetch(API + '/api/settings', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({maintenance: isOn})
+    });
+    toast(isOn ? 'Maintenance Mode ON' : 'Maintenance Mode OFF', isOn ? 'error' : 'success');
+  }catch(e){ toast('Failed to update', 'error'); el.checked = !isOn; }
+}
+
+// ================= INIT =================
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function emptyState(icon, title, sub){ return `<div class="empty"><i class="fa-solid ${icon}"></i><b>${esc(title)}</b>${sub?`<div style="margin-top:4px">${esc(sub)}</div>`:''}</div>`; }
+
+document.addEventListener('DOMContentLoaded', () => {
+  switchAuthMode('login');
+  restoreSession();
+  syncMaintenanceState(); 
+  loadServerList();
+  
+  refreshCreditsUI();
+  renderPackages();
+  renderHistory();
+  renderCoupons();
+  renderContacts();
+  fetchAll(false);
+  
+  setInterval(() => { 
+    fetchStats(); 
+    pollGroups(); 
+    syncMaintenanceState(); 
+    if(window.__session?.role === 'admin' && document.getElementById('view-admin').classList.contains('active')){
+      fetchLogs();
+    }
+  }, 3000); 
+});
+</script>
+</body>
+</html>
